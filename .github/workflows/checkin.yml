@@ -60,7 +60,17 @@ jobs:
 
     - name: 安装 CloakBrowser
       run: |
+        set +e
         uv run python -m cloakbrowser install
+        install_exit=$?
+        set -e
+        if [ "$install_exit" -ne 0 ]; then
+          if [ "$install_exit" -eq 139 ] && find "${HOME}/.cloakbrowser" -type f -name chrome -print -quit | grep -q .; then
+            echo "⚠️ CloakBrowser 安装命令异常退出(139)，但浏览器二进制已就绪，继续执行"
+          else
+            exit "$install_exit"
+          fi
+        fi
         echo "✅ CloakBrowser 安装完成"
 
     - name: 恢复余额历史缓存
